@@ -53,22 +53,46 @@ module.exports.createListing = async (req, res) => {
     res.render("listings/edit.ejs", { listing,originalImageUrl });
   }
 
- 
 
-  module.exports.updateListing =  async (req, res) => {
+  // module.exports.updateListing =  async (req, res) => {
+  //   let { id } = req.params;
+  //   let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+
+  //   if(typeof req.file !== "undefined") {
+  //     let url = req.file.path;
+  //     let filename = req.file.filename; 
+  //     listing.image ={url,filename};
+  //     console.log("update:",listing.image)
+  //     await listing.save();
+  //   }   
+  //   req.flash("success", "Listing updated");
+  //   res.redirect(`/listings/${id}`);
+  // }
+
+  module.exports.updateListing = async (req, res) => {
     let { id } = req.params;
-    let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+    let listing = await Listing.findById(id);
 
-    if(typeof req.file !== "undefined") {
-      let url = req.file.path;
-      let filename = req.file.filename; 
-      listing.image ={url,filename};
-      console.log("update:",listing.image)
-      await listing.save();
-    }   
+    if (!listing) {
+        req.flash("error", "Listing you requested for does not exist!");
+        return res.redirect("/listings");
+    }
+
+    // Update the listing with new details
+    listing.set(req.body.listing);
+
+    // Check if a new file is uploaded
+    if (req.file) {
+        let url = req.file.path;
+        let filename = req.file.filename;
+        listing.image = { url, filename };
+    }
+
+    await listing.save();
     req.flash("success", "Listing updated");
     res.redirect(`/listings/${id}`);
-  }
+}
+
  
 
 
